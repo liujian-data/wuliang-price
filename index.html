@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <!-- viewport-fit=cover：让 iPhone 刘海屏/底部横条区域可用，配合 CSS env(safe-area-inset-*) -->
+  <!-- 不写 user-scalable=no：微信/手机用户习惯双指放大，禁掉会招骂，且我们已做响应式布局 -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="format-detection" content="telephone=no,email=no,address=no">
+  <meta name="theme-color" content="#1E6FEB">
+  <meta name="description" content="高粱、大米、糯米、小麦、玉米分等级价格（元/斤）。数据来自同花顺 iFinD 宏观行业经济库，日频/月频，非秒级实时行情。">
+  <!-- 社交平台分享卡片（微信内非 JSSDK 页面只能尽力而为，标题与描述会被采用） -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="五粮分等级价格数据大屏">
+  <meta property="og:description" content="高粱、大米、糯米、小麦、玉米分等级价格（元/斤）。日频/月频真实数据。">
+  <meta itemprop="name" content="五粮分等级价格数据大屏">
+  <meta itemprop="description" content="五粮分等级单价（元/斤），真实数据，日频/月频。">
+  <title>五粮分等级价格数据大屏</title>
+  <!-- 内联图标：省掉浏览器自动请求 /favicon.ico 产生的 404，也不依赖任何外部文件 -->
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%231E6FEB'/%3E%3Cpath d='M20 46V28M32 46V20M44 46V34' stroke='%23fff' stroke-width='6' stroke-linecap='round'/%3E%3C/svg%3E">
+  <!-- 资源一律用相对路径：本页发布在资料库的 COS 上，绝对路径 /static/... 会 404 -->
+  <link rel="stylesheet" href="static/css/style.css?v=0.8.0">
+</head>
+<body>
+
+<!-- 1920×1080 定尺舞台，由 main.js 按窗口等比缩放居中 -->
+<!-- 窄屏（手机 / 微信内置浏览器）下改走响应式单列流式布局，见 style.css 的 @media (max-width:900px) -->
+<div class="stage" id="stage">
+
+  <!-- 原「微信环境提示条」已移除：
+       旧版提示用户「点右上角···→ 在浏览器打开」，是因为那个域名在微信里被平台网关拦。
+       本页发布在资料库域名下，微信可直接打开，再提示跳浏览器就是自相矛盾。 -->
+
+  <!-- ==================== 顶部：标题 + 制作方署名 + 数据状态 ==================== -->
+  <header class="topbar">
+    <div class="topbar__left">
+      <h1 class="topbar__title">五粮分等级价格数据大屏</h1>
+      <p class="topbar__sub">高粱 · 大米 · 糯米 · 小麦 · 玉米　　分等级单价（元 / 斤）</p>
+    </div>
+    <!-- 制作方署名：固定展示，不得删除、不得移位、不得被遮挡 -->
+    <div class="topbar__right">
+      <p class="maker">四川长江农业发展有限责任公司 制作</p>
+      <p class="maker__note">
+        真实数据 <span class="badge-live" id="data-badge">日频 / 月频</span>
+        更新至 <span id="maker-date">--</span>
+      </p>
+    </div>
+  </header>
+
+  <!-- ==================== 核心指标条（7 项） ==================== -->
+  <section class="kpibar" id="kpibar">
+    <div class="kpi">
+      <span class="kpi__label" id="kpi-avg-label">五粮均价</span>
+      <span class="kpi__value" id="kpi-avg">--<small>元/斤</small></span>
+    </div>
+    <div class="kpi">
+      <span class="kpi__label" id="kpi-max-label">最高价</span>
+      <span class="kpi__value" id="kpi-max">--<small>元/斤</small></span>
+    </div>
+    <div class="kpi">
+      <span class="kpi__label" id="kpi-min-label">最低价</span>
+      <span class="kpi__value" id="kpi-min">--<small>元/斤</small></span>
+    </div>
+    <div class="kpi">
+      <span class="kpi__label">粮种数</span>
+      <span class="kpi__value" id="kpi-grains">--<small>种</small></span>
+    </div>
+    <div class="kpi">
+      <span class="kpi__label">等级档位</span>
+      <span class="kpi__value" id="kpi-grades">--<small>档</small></span>
+    </div>
+    <div class="kpi">
+      <span class="kpi__label">涨 / 跌</span>
+      <span class="kpi__value" id="kpi-move">--<small>档</small></span>
+    </div>
+    <div class="kpi kpi--time">
+      <span class="kpi__label">数据日期</span>
+      <span class="kpi__value" id="kpi-date">----------</span>
+    </div>
+  </section>
+
+  <!-- ==================== 主体三列 ==================== -->
+  <main class="main">
+
+    <!-- ---------------- 左列 ---------------- -->
+    <section class="col col--left">
+
+      <!-- 五粮分等级价格卡片 -->
+      <div class="panel panel--gcards">
+        <div class="panel__head">
+          <h2 class="panel__title">五粮分等级价格</h2>
+          <span class="panel__tag">点击切换分析</span>
+        </div>
+        <div class="gcards" id="gcards">
+          
+          <button class="gcard gcard--multi" type="button" data-grain="高粱" aria-pressed="false">
+            <span class="gcard__accent"></span>
+            <span class="gcard__row">
+              <span class="gcard__name">高粱</span>
+              <span class="gcard__price"><b>--</b><i>元/斤</i></span>
+              <span class="gcard__chg is-flat">--</span>
+            </span>
+            <span class="gcard__grades" id="grades-高粱" data-grades="高粱"></span>
+          </button>
+          
+          <button class="gcard gcard--multi" type="button" data-grain="大米" aria-pressed="false">
+            <span class="gcard__accent"></span>
+            <span class="gcard__row">
+              <span class="gcard__name">大米</span>
+              <span class="gcard__price"><b>--</b><i>元/斤</i></span>
+              <span class="gcard__chg is-flat">--</span>
+            </span>
+            <span class="gcard__grades" id="grades-大米" data-grades="大米"></span>
+          </button>
+          
+          <button class="gcard gcard--multi" type="button" data-grain="糯米" aria-pressed="false">
+            <span class="gcard__accent"></span>
+            <span class="gcard__row">
+              <span class="gcard__name">糯米</span>
+              <span class="gcard__price"><b>--</b><i>元/斤</i></span>
+              <span class="gcard__chg is-flat">--</span>
+            </span>
+            <span class="gcard__grades" id="grades-糯米" data-grades="糯米"></span>
+          </button>
+          
+          <button class="gcard gcard--multi" type="button" data-grain="小麦" aria-pressed="false">
+            <span class="gcard__accent"></span>
+            <span class="gcard__row">
+              <span class="gcard__name">小麦</span>
+              <span class="gcard__price"><b>--</b><i>元/斤</i></span>
+              <span class="gcard__chg is-flat">--</span>
+            </span>
+            <span class="gcard__grades" id="grades-小麦" data-grades="小麦"></span>
+          </button>
+          
+          <button class="gcard gcard--multi" type="button" data-grain="玉米" aria-pressed="false">
+            <span class="gcard__accent"></span>
+            <span class="gcard__row">
+              <span class="gcard__name">玉米</span>
+              <span class="gcard__price"><b>--</b><i>元/斤</i></span>
+              <span class="gcard__chg is-flat">--</span>
+            </span>
+            <span class="gcard__grades" id="grades-玉米" data-grades="玉米"></span>
+          </button>
+          
+        </div>
+      </div>
+
+      <!-- 涨跌榜 -->
+      <div class="panel panel--updown">
+        <div class="panel__head">
+          <h2 class="panel__title">涨跌榜</h2>
+          <span class="panel__tag">较上一期（真实数据点）</span>
+        </div>
+        <div class="panel__body">
+          <ul class="bar-list" id="updown-list"></ul>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ---------------- 中列 ---------------- -->
+    <section class="col col--mid">
+
+      <!-- 价格趋势（各等级多线） -->
+      <div class="panel panel--trend">
+        <div class="panel__head">
+          <h2 class="panel__title">各等级价格趋势</h2>
+          <span class="panel__tag" id="trend-grain">--</span>
+          <span class="panel__tag panel__tag--ghost" id="trend-freq">--</span>
+        </div>
+        <div class="panel__body panel__body--chart">
+          <div class="chart" id="chart-trend"></div>
+          <p class="chart-credit">
+            近 <b id="trend-days">--</b> 个数据点　·　单位 元/斤　·　
+            <span id="trend-summary">--</span>
+          </p>
+        </div>
+      </div>
+
+      <!-- 等级价差（替换原中国地图：分省真实价格数据零星，撑不起地图） -->
+      <div class="panel panel--spread">
+        <div class="panel__head">
+          <h2 class="panel__title">等级价差</h2>
+          <span class="panel__tag" id="spread-grain">--</span>
+          <span class="panel__tag panel__tag--ghost" id="spread-stat">--</span>
+        </div>
+        <div class="panel__body panel__body--chart">
+          <div class="chart" id="chart-spread"></div>
+          <p class="chart-credit" id="spread-note">同一粮种内各等级单价对比（真实数据）</p>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ---------------- 右列 ---------------- -->
+    <section class="col col--right">
+
+      <!-- 各档价格对比 -->
+      <div class="panel panel--rank-price">
+        <div class="panel__head">
+          <h2 class="panel__title">各档价格对比</h2>
+          <span class="panel__tag">全部等级档位</span>
+        </div>
+        <div class="panel__body">
+          <ul class="rank-list" id="rank-price"></ul>
+        </div>
+      </div>
+
+      <!-- 数据来源与更新 -->
+      <div class="panel panel--sources">
+        <div class="panel__head">
+          <h2 class="panel__title">数据来源与更新</h2>
+          <span class="panel__tag" id="sources-summary">--</span>
+        </div>
+        <div class="panel__body">
+          <div class="news-viewport">
+            <div class="news-track" id="news-track"></div>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- 加载态提示：切换粮食 / 首屏加载时出现，body.is-busy 控制显隐 -->
+    <div class="loading-pill" id="loading-pill" role="status" aria-live="polite">
+      <span class="loading-pill__ring"></span>数据更新中
+    </div>
+  </main>
+
+  <!-- ==================== 底部：数据来源滚动说明 ==================== -->
+  <section class="ticker">
+    <div class="ticker__label">数据来源</div>
+    <div class="ticker__viewport">
+      <div class="ticker__track" id="ticker-track"></div>
+    </div>
+  </section>
+
+  <!-- ==================== 页脚数据说明与免责 ==================== -->
+  <footer class="footer">
+    <p id="footer-disclaimer">
+      数据说明：本大屏数据来自公开渠道（同花顺 iFinD 宏观行业经济库），为
+      <b>日频 / 月频</b> 现货与批发价格，<b>不是秒级实时行情</b>；仅供研究参考，不构成任何投资或交易建议。
+    </p>
+    <p class="footer__note" id="footer-meta">
+      均价口径：各粮种代表规格价格的算术平均　·　涨跌幅口径：与上一期真实数据点比较
+    </p>
+    <p class="footer__note" id="footer-snap">
+      本页为数据快照版　·　快照生成于 <span id="snap-built">--</span>　·　数据源按日/月更新，快照随数据同步重建
+    </p>
+  </footer>
+
+</div>
+
+<!-- 数据快照：构建时固化，页面运行时不发任何网络请求（微信内置浏览器也能完整工作） -->
+<script src="data/snapshot.js?v=0.8.0"></script>
+<!-- ECharts 已在包内，运行时不需要联网 -->
+<script src="static/js/vendor/echarts.min.js?v=0.8.0"></script>
+<script src="static/js/charts.js?v=0.8.0"></script>
+<script src="static/js/main.js?v=0.8.0"></script>
+</body>
+</html>
