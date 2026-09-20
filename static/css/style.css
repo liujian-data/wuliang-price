@@ -1,0 +1,1484 @@
+/* ============================================================
+   五粮即时价格商业数据大屏 —— 样式
+   阶段 3：1920×1080 定尺布局，等比缩放居中，任何分辨率下无滚动条
+   ------------------------------------------------------------
+   设计约定
+   · 一切尺寸按 1920×1080 设计稿写死，缩放交给 .stage 的 transform
+   · 所有纵向可伸缩的容器必须写 min-height:0，否则 flex 子项撑破父级
+   · 涨跌配色遵循国内习惯：涨红跌绿
+   ============================================================ */
+
+/* ---------------- 设计变量 ---------------- */
+:root {
+  --brand:        #1E6FEB;
+  --brand-light:  #2E9BFF;
+  --brand-cyan:   #38C6F4;
+  --brand-deep:   #0F4FA8;
+
+  --bg-1:         #EDF4FE;
+  --bg-2:         #D9E8FB;
+  --page-bg:      #D9E8FB;
+
+  --card:         #FFFFFF;
+  --border:       #D5E4F7;
+  --border-soft:  #E8F1FD;
+  --panel-bg:     linear-gradient(180deg, #FFFFFF 0%, #F7FBFF 100%);
+
+  --text:         #0F2440;
+  --text-sub:     #5B7290;
+  --text-weak:    #93A7BF;
+
+  --up:           #E24B4A;
+  --up-bg:        #FDEDED;
+  --down:         #1D9E75;
+  --down-bg:      #E9F7F2;
+  --flat:         #8C9EB5;
+  --flat-bg:      #EFF3F9;
+
+  --radius:       12px;
+  --radius-sm:    8px;
+  --shadow:       0 3px 14px rgba(30, 111, 235, 0.09);
+  --shadow-hi:    0 6px 20px rgba(30, 111, 235, 0.20);
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden;                    /* 定尺缩放方案的前提：永不出现滚动条 */
+  background: var(--page-bg);
+  /* 微信 Android 内置浏览器会按自己的一套规则放大正文字号，字号一放大布局就崩，
+     必须显式声明"不要动我的字号"。这一条不加，手机上打开就是灾难。 */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  font-family: "Microsoft YaHei", "PingFang SC", "Hiragino Sans GB", "Source Han Sans SC", sans-serif;
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+  /* 移动端点按不要出现系统灰块高亮（放在整页上，卡片按钮自带的是另一套） */
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ============================================================
+   舞台：1920×1080 固定尺寸，由 JS 设置 translate + scale
+   ============================================================ */
+.stage {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 1920px;
+  height: 1080px;
+  transform-origin: 0 0;
+  will-change: transform;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px 16px 12px;
+  overflow: hidden;
+  background:
+    radial-gradient(1180px 560px at 10% -12%, rgba(56, 198, 244, 0.20) 0%, rgba(56, 198, 244, 0) 62%),
+    radial-gradient(1040px 520px at 94% 6%, rgba(46, 155, 255, 0.18) 0%, rgba(46, 155, 255, 0) 64%),
+    linear-gradient(168deg, var(--bg-1) 0%, var(--bg-2) 100%);
+}
+
+/* ============================================================
+   顶部：标题 + 制作方署名
+   ============================================================ */
+.topbar {
+  position: relative;
+  flex: 0 0 74px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 0 26px;
+  border-radius: var(--radius);
+  background: linear-gradient(96deg, #0E4A9E 0%, var(--brand) 52%, #34A0FF 100%);
+  box-shadow: 0 6px 20px rgba(15, 79, 168, 0.24);
+  overflow: hidden;
+}
+
+/* 顶部高光，增加渐变层次 */
+.topbar::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.16) 0%, rgba(255, 255, 255, 0) 48%);
+  pointer-events: none;
+}
+
+.topbar__left { position: relative; z-index: 1; }
+
+.topbar__title {
+  margin: 0;
+  font-size: 30px;
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: 4px;
+  color: #fff;
+  text-shadow: 0 2px 8px rgba(4, 32, 73, 0.28);
+}
+
+.topbar__sub {
+  margin: 6px 0 0;
+  font-size: 13px;
+  letter-spacing: 1.2px;
+  color: rgba(255, 255, 255, 0.84);
+}
+
+.topbar__right {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 5px;
+}
+
+/* 制作方署名：独立区域、字号 ≥16px、不与其他元素抢横向空间 */
+.maker {
+  margin: 0;
+  padding: 8px 20px;
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: 1.6px;
+  white-space: nowrap;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.44);
+  border-radius: var(--radius-sm);
+}
+
+.maker__note {
+  margin: 0;
+  font-size: 12px;
+  letter-spacing: 0.6px;
+  color: rgba(255, 255, 255, 0.78);
+}
+
+/* ============================================================
+   核心指标条
+   ============================================================ */
+.kpibar {
+  flex: 0 0 72px;
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.kpi {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  padding: 0 12px 0 17px;
+  background: var(--panel-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.kpi::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 14%;
+  bottom: 14%;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: linear-gradient(180deg, var(--brand-cyan), var(--brand));
+}
+
+.kpi__label {
+  font-size: 12px;
+  letter-spacing: 0.4px;
+  color: var(--text-sub);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.kpi__value {
+  font-size: 23px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.4px;
+  color: var(--brand);
+  white-space: nowrap;
+}
+
+.kpi__value small {
+  margin-left: 3px;
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: 0;
+  color: var(--text-sub);
+}
+
+.kpi--time .kpi__value {
+  font-size: 19px;
+  letter-spacing: 1px;
+  color: var(--brand-deep);
+}
+
+/* ============================================================
+   主体三列
+   ============================================================ */
+.main {
+  position: relative;           /* 加载态提示按其定位 */
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  gap: 12px;
+}
+
+.col {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 0;
+}
+
+.col--left  { flex: 0 0 392px; }
+.col--mid   { flex: 1 1 auto; min-width: 0; }
+.col--right { flex: 0 0 392px; }
+
+/* ============================================================
+   面板通用样式
+   ============================================================ */
+.panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  padding: 9px 12px 10px;
+  background: var(--panel-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+/* 科技感角标：左上 / 右下 */
+.panel::before,
+.panel::after {
+  content: "";
+  position: absolute;
+  width: 13px;
+  height: 13px;
+  pointer-events: none;
+  border: 0 solid rgba(46, 155, 255, 0.5);
+}
+
+.panel::before {
+  top: 5px;
+  left: 5px;
+  border-top-width: 2px;
+  border-left-width: 2px;
+  border-top-left-radius: 6px;
+}
+
+.panel::after {
+  right: 5px;
+  bottom: 5px;
+  border-right-width: 2px;
+  border-bottom-width: 2px;
+  border-bottom-right-radius: 6px;
+}
+
+.panel__head {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 20px;
+  margin-bottom: 7px;
+}
+
+.panel__title {
+  position: relative;
+  margin: 0;
+  padding-left: 10px;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  color: var(--text);
+  white-space: nowrap;
+}
+
+.panel__title::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 13px;
+  border-radius: 2px;
+  background: linear-gradient(180deg, var(--brand-cyan), var(--brand));
+}
+
+.panel__tag {
+  margin-left: auto;
+  padding: 2px 9px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--brand);
+  background: #EAF3FF;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+
+.panel__tag--ghost {
+  margin-left: 0;
+  font-weight: 400;
+  color: var(--text-sub);
+  background: #F1F6FD;
+}
+
+.panel__body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.panel__body--split {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* ============================================================
+   五粮即时价格卡片
+   ============================================================ */
+.panel--gcards { flex: 0 0 372px; }
+
+.gcards {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.gcard {
+  position: relative;
+  flex: 1 1 0;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 12px 0 14px;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  background: #FFFFFF;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 1px 4px rgba(30, 111, 235, 0.06);
+  overflow: hidden;
+  transition: background 0.2s ease, border-color 0.2s ease,
+              box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.gcard:hover {
+  border-color: #A9CDF8;
+  box-shadow: var(--shadow-hi);
+}
+
+/* 选中高亮：左侧色条 + 冷色底 + 蓝色描边 */
+.gcard.is-active {
+  background: linear-gradient(90deg, #EAF3FF 0%, #F6FAFF 100%);
+  border-color: #9CC6F7;
+  box-shadow: 0 0 0 1px rgba(46, 155, 255, 0.35), 0 6px 16px rgba(30, 111, 235, 0.16);
+  transform: translateX(2px);
+}
+
+.gcard__accent {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: linear-gradient(180deg, var(--brand-light), var(--brand-deep));
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.gcard.is-active .gcard__accent { opacity: 1; }
+
+.gcard__name {
+  flex: 0 0 auto;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: var(--text);
+}
+
+.gcard.is-active .gcard__name { color: var(--brand-deep); }
+
+.gcard__price {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 21px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--brand);
+  letter-spacing: 0.4px;
+}
+
+.gcard__price i {
+  margin-left: 3px;
+  font-size: 11px;
+  font-weight: 400;
+  font-style: normal;
+  color: var(--text-sub);
+}
+
+.gcard__side {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 3px;
+}
+
+.gcard__chg {
+  min-width: 62px;
+  padding: 2px 8px;
+  font-size: 12px;
+  font-weight: 700;
+  text-align: center;
+  border-radius: 4px;
+  font-variant-numeric: tabular-nums;
+}
+
+.gcard__time {
+  font-size: 11px;
+  color: var(--text-weak);
+  letter-spacing: 0.3px;
+}
+
+/* 涨红跌绿：基础类只给文字色；色块背景由各组件按需组合，避免污染纯文字元素 */
+.is-up   { color: var(--up); }
+.is-down { color: var(--down); }
+.is-flat { color: var(--flat); }
+
+.gcard__chg.is-up,
+.news-row__chg.is-up,
+.ticker__item em.is-up { background: var(--up-bg); }
+
+.gcard__chg.is-down,
+.news-row__chg.is-down,
+.ticker__item em.is-down { background: var(--down-bg); }
+
+.gcard__chg.is-flat,
+.news-row__chg.is-flat,
+.ticker__item em.is-flat { background: var(--flat-bg); }
+
+/* ============================================================
+   涨跌榜（条形列表）
+   ============================================================ */
+.panel--updown  { flex: 1 1 0; }
+.panel--channel { flex: 1.22 1 0; }
+
+.bar-list {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  gap: 4px;
+}
+
+.bar-item {
+  display: grid;
+  grid-template-columns: 42px 1fr 64px;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.bar-item__name {
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: 0.5px;
+}
+
+.bar-item__track {
+  display: block;               /* span 默认行内，必须块化，否则内部 fill 尺寸全部失效 */
+  height: 9px;
+  border-radius: 5px;
+  background: #EEF4FC;
+  overflow: hidden;
+}
+
+.bar-item__fill {
+  display: block;               /* 行内元素的 width/height 无效，会导致进度条不可见 */
+  height: 100%;
+  border-radius: 5px;
+  transition: width 0.5s ease;
+}
+
+.bar-item__fill.is-up   { background: linear-gradient(90deg, #F6ADAD, var(--up)); }
+.bar-item__fill.is-down { background: linear-gradient(90deg, #93DCC4, var(--down)); }
+
+.bar-item__val {
+  text-align: right;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ============================================================
+   渠道占比：图例
+   ============================================================ */
+.legend-grid {
+  flex: 1 1 auto;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-auto-rows: 1fr;
+  gap: 4px 10px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  min-width: 0;
+}
+
+.legend-item__dot {
+  flex: 0 0 auto;
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+}
+
+.legend-item__name {
+  color: var(--text-sub);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.legend-item__val {
+  margin-left: auto;
+  font-weight: 700;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ============================================================
+   图表容器（ECharts 实例挂载点，阶段 4 起）
+   要点：ECharts 初始化时必须能读到容器的像素尺寸，
+        所以容器高度一律由 flex 布局确定，不写死 height。
+   ============================================================ */
+.panel__body--chart {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.chart {
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+}
+
+/* 图表下方说明行（地图合规标注 / 趋势区间摘要） */
+.chart-credit {
+  flex: 0 0 auto;
+  margin: 0;
+  height: 14px;
+  font-size: 11px;
+  line-height: 14px;
+  text-align: right;
+  color: var(--text-sub);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.chart-credit b { color: var(--brand); font-weight: 700; }
+
+/* 渠道环形图：与下方 HTML 图例上下分栏（图例已含百分比，图中不再重复画图例） */
+.chart--pie {
+  flex: 0 0 94px;
+}
+
+/* ============================================================
+   右侧排行
+   ============================================================ */
+/* 中列：地图与趋势按 62:38 分配列高 */
+.panel--map   { flex: 62 1 0; }
+.panel--trend { flex: 38 1 0; }
+
+/* 右列五个面板的纵向比例：合计 100。
+   profit(17) 与 hot(19) 必须容得下 5 行内容（实测 87px / 97px），
+   调整时两边的数字要一起核。 */
+.panel--rank-price { flex: 20 1 0; }
+.panel--rank-vol   { flex: 20 1 0; }
+.panel--profit     { flex: 17 1 0; }
+.panel--hot        { flex: 19 1 0; }
+.panel--detail     { flex: 24 1 0; }
+
+.rank-list {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  gap: 3px;
+}
+
+.rank-row {
+  position: relative;
+  display: grid;
+  grid-template-columns: 19px 1fr auto;
+  align-items: center;
+  gap: 7px;
+  padding: 0 6px 0 4px;
+  font-size: 12px;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+/* 数值背景条：宽度按数值占比，形成横向排行效果。
+   注意必须保持 absolute（脱离文档流，不占 grid 单元格），
+   后面的 .rank-row__no 等规则不得使用会覆盖它的通配选择器 */
+.rank-row__bg {
+  position: absolute;
+  left: 0;
+  top: 1px;
+  bottom: 1px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, rgba(46, 155, 255, 0.20), rgba(46, 155, 255, 0.04));
+  z-index: 0;
+  /* 增量渲染下宽度变化会真正被浏览器捕捉到，这里补上过渡才有动画 */
+  transition: width 0.5s ease;
+}
+
+.rank-row__no,
+.rank-row__name,
+.rank-row__val { position: relative; z-index: 1; }
+
+.rank-row__no {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 19px;
+  height: 19px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #fff;
+  border-radius: 4px;
+  background: #B9CCE2;
+}
+
+.rank-row__no.is-top1 { background: linear-gradient(135deg, #FFB020, #F08C00); }
+.rank-row__no.is-top2 { background: linear-gradient(135deg, #9DB4CE, #7C93AD); }
+.rank-row__no.is-top3 { background: linear-gradient(135deg, #E0A472, #C4834D); }
+
+.rank-row__name {
+  color: var(--text);
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rank-row__val {
+  font-weight: 700;
+  color: var(--brand-deep);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.rank-row__val small {
+  margin-left: 2px;
+  font-size: 10px;
+  font-weight: 400;
+  color: var(--text-sub);
+}
+
+/* ============================================================
+   利润率进度
+   ============================================================ */
+.prog-list {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  gap: 3px;
+}
+
+.prog-item {
+  flex: 1 1 0;                  /* 行高随面板高度均分，固定 5 行永不溢出 */
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 34px 1fr 44px;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+}
+
+.prog-item__name {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.prog-item__track {
+  display: block;               /* 块化：同 .bar-item__track */
+  height: 8px;
+  border-radius: 4px;
+  background: #EEF4FC;
+  overflow: hidden;
+}
+
+.prog-item__fill {
+  display: block;               /* 块化：同 .bar-item__fill */
+  height: 100%;
+  border-radius: 4px;
+  background: linear-gradient(90deg, var(--brand-cyan), var(--brand));
+  transition: width 0.5s ease;
+}
+
+.prog-item.is-active .prog-item__name { color: var(--brand-deep); }
+.prog-item.is-active .prog-item__fill { background: linear-gradient(90deg, #5FD3F7, var(--brand-deep)); }
+
+.prog-item__val {
+  text-align: right;
+  font-weight: 700;
+  color: var(--brand);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ============================================================
+   地区销售热榜
+   ============================================================ */
+.hot-list {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  gap: 3px;
+}
+
+.hot-item {
+  flex: 1 1 0;                  /* 行高随面板高度均分，固定 5 行永不溢出 */
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 20px 1fr auto;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.hot-item__medal {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #fff;
+  border-radius: 50%;
+  background: #B9CCE2;
+}
+
+.hot-item__medal.is-top1 { background: linear-gradient(135deg, #FFB020, #F08C00); }
+.hot-item__medal.is-top2 { background: linear-gradient(135deg, #9DB4CE, #7C93AD); }
+.hot-item__medal.is-top3 { background: linear-gradient(135deg, #E0A472, #C4834D); }
+
+.hot-item__name {
+  color: var(--text);
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.hot-item__val {
+  font-weight: 700;
+  color: var(--brand);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.hot-item__val small {
+  margin-left: 2px;
+  font-size: 10px;
+  font-weight: 400;
+  color: var(--text-sub);
+}
+
+/* ============================================================
+   销售明细（纵向轮播）
+   ============================================================ */
+.news-viewport {
+  height: 100%;
+  overflow: hidden;
+}
+
+.news-track {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  animation: scroll-y 30s linear infinite;
+}
+
+/* 鼠标悬停暂停轮播 */
+.news-viewport:hover .news-track { animation-play-state: paused; }
+
+@keyframes scroll-y {
+  from { transform: translateY(0); }
+  to   { transform: translateY(-50%); }
+}
+
+.news-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 4px 8px;
+  padding: 5px 9px;
+  background: #F8FBFF;
+  border: 1px solid var(--border-soft);
+  border-left: 3px solid var(--brand-light);
+  border-radius: 6px;
+}
+
+.news-row__head {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  font-size: 12px;
+  color: var(--text);
+}
+
+.news-row__grain {
+  flex: 0 0 auto;
+  font-weight: 700;
+  color: var(--brand-deep);
+}
+
+.news-row__region {
+  color: var(--text-sub);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.news-row__price {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--brand);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.news-row__price small {
+  font-size: 10px;
+  font-weight: 400;
+  color: var(--text-sub);
+}
+
+.news-row__foot {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--text-weak);
+}
+
+.news-row__chg {
+  padding: 1px 6px;
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: 3px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ============================================================
+   底部滚动明细
+   ============================================================ */
+.ticker {
+  flex: 0 0 52px;
+  display: flex;
+  align-items: stretch;
+  background: var(--panel-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.ticker__label {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  padding: 0 18px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  color: #fff;
+  background: linear-gradient(96deg, var(--brand-deep), var(--brand-light));
+  white-space: nowrap;
+}
+
+.ticker__viewport {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+}
+
+.ticker__track {
+  display: inline-flex;
+  align-items: center;
+  gap: 30px;
+  padding-left: 20px;
+  white-space: nowrap;
+  animation: scroll-x 90s linear infinite;
+}
+
+/* 鼠标悬停暂停滚动 */
+.ticker:hover .ticker__track { animation-play-state: paused; }
+
+@keyframes scroll-x {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+.ticker__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 13px;
+  color: var(--text-sub);
+}
+
+.ticker__item b {
+  font-weight: 700;
+  color: var(--brand-deep);
+}
+
+.ticker__item .t-price {
+  color: var(--brand);
+  font-variant-numeric: tabular-nums;
+}
+
+.ticker__item em {
+  padding: 1px 6px;
+  font-style: normal;
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: 3px;
+  font-variant-numeric: tabular-nums;
+}
+
+.ticker__item .t-time { color: var(--text-weak); font-size: 11px; }
+
+.ticker__sep {
+  color: #C6D8EE;
+  font-size: 12px;
+}
+
+/* ============================================================
+   页脚
+   ============================================================ */
+.footer {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  font-size: 12px;
+  color: var(--text-sub);
+  letter-spacing: 0.3px;
+}
+
+.footer p { margin: 0; }
+
+.footer__note { color: var(--text-weak); }
+
+/* ============================================================
+   加载态 / 错误态
+   ============================================================ */
+.is-loading { color: var(--text-weak) !important; }
+
+.err-tip {
+  margin: 0;
+  padding: 6px 0;
+  font-size: 12px;
+  color: var(--up);
+}
+
+/* ============================================================
+   阶段 5：动态效果
+   说明：所有动效都依赖「增量渲染」——节点被复用、只改数值，
+   过渡动画才有起止两端；若每轮 innerHTML 重建，下面这些 transition 全是摆设。
+   ============================================================ */
+
+/* 数值变动闪动：只有数值确实变化时，main.js 才会打上 .is-flash，900ms 后自行移除 */
+.kpi__value.is-flash,
+.gcard__price b.is-flash,
+.gcard__chg.is-flash,
+.bar-item__val.is-flash {
+  animation: num-flash 0.9s cubic-bezier(0.22, 0.61, 0.36, 1) 1;
+  border-radius: 4px;
+}
+
+@keyframes num-flash {
+  0%   { background: rgba(46, 155, 255, 0.26); }
+  60%  { background: rgba(46, 155, 255, 0.10); }
+  100% { background: transparent; }
+}
+
+/* 选中卡片：强调条滑入，作为「状态动态切换」的视觉反馈 */
+.gcard.is-active .gcard__accent {
+  animation: accent-in 0.42s cubic-bezier(0.22, 0.61, 0.36, 1) 1;
+  transform-origin: center;
+}
+
+@keyframes accent-in {
+  0%   { transform: scaleY(0.15); }
+  100% { transform: scaleY(1); }
+}
+
+/* ------------------------------------------------------------
+   加载态提示：切换粮食 / 首屏加载时出现
+   用 body.is-busy 控制显隐（不用 .is-loading——该名字在本文件里
+   已被占用为「文字弱化色」，加在 body 上会把整页文字变灰）
+   ------------------------------------------------------------ */
+.loading-pill {
+  position: absolute;
+  left: 50%;
+  top: 42%;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 16px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  color: var(--brand);
+  background: rgba(255, 255, 255, 0.97);
+  border: 1px solid #9CC6F7;
+  border-radius: 22px;
+  box-shadow: 0 8px 22px rgba(30, 111, 235, 0.22);
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.94);
+  pointer-events: none;
+  transition: opacity 0.22s ease, transform 0.22s ease;
+}
+
+body.is-busy .loading-pill {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.loading-pill__ring {
+  width: 12px;
+  height: 12px;
+  border: 2px solid rgba(46, 155, 255, 0.28);
+  border-top-color: var(--brand);
+  border-radius: 50%;
+  animation: ring-spin 0.7s linear infinite;
+}
+
+@keyframes ring-spin {
+  0%   { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* ============================================================
+   静态模式：访问 ?static=1 时由 main.js 给 body 加 .is-static
+   关闭全部 CSS 过渡与动画，用于截图验收与数据快照。
+   ECharts 的 canvas 动画不在 CSS 管辖内，由 charts.js 单独关闭。
+   ============================================================ */
+.is-static *,
+.is-static *::before,
+.is-static *::after {
+  transition: none !important;
+  animation: none !important;
+}
+
+/* 图表容器在静态模式下不显示 ECharts 的首次渲染动画 */
+.is-static .chart canvas { opacity: 1 !important; }
+
+/* ============================================================
+   真实数据版（v0.6.0）：分等级卡片 / 数据状态标注 / 新面板
+   ------------------------------------------------------------
+   原「中国销售地图」「渠道占比」「销量/利润/明细」面板已移除：
+   这些面板原本依赖模拟的经营数据（销量、销售额、利润、渠道、省市），
+   真实市场行情里并不存在这些字段，继续显示就只能继续编。
+   替换为全部有真实数据支撑的面板。
+   ============================================================ */
+
+/* ---------- 顶部数据状态标注（诚实性：必须让访客看到数据日期与频率） ---------- */
+.badge-live {
+  display: inline-block;
+  padding: 1px 8px;
+  margin: 0 2px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #0E7A5F;
+  background: #E4F6F0;
+  border: 1px solid #B7E4D6;
+  border-radius: 10px;
+  letter-spacing: 0.4px;
+}
+
+.kpi__value--date {
+  font-size: 22px !important;
+  letter-spacing: 0.5px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- 左列面板高度：卡片要容下 1~3 行等级明细 ---------- */
+.panel--gcards { flex: 0 0 466px; }
+
+/* ---------- 分等级卡片 ---------- */
+.gcard--multi {
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center;
+  gap: 5px;
+  padding: 7px 12px 7px 14px;
+}
+
+.gcard__row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.gcard__row .gcard__name { flex: 0 0 auto; }
+.gcard__row .gcard__price { flex: 1 1 auto; }
+.gcard__row .gcard__chg { flex: 0 0 auto; }
+
+.gcard__grades {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding-left: 8px;
+  border-left: 2px solid #E6EEF9;
+}
+
+.grow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 17px;
+  font-size: 11.5px;
+  line-height: 17px;
+  color: var(--text-sub);
+}
+
+.grow__name {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.grow__val {
+  flex: 0 0 46px;
+  text-align: right;
+  font-weight: 700;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+.grow__chg {
+  flex: 0 0 62px;
+  text-align: right;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* 涨红跌绿（中国股市惯例），与既有 KPI / 卡片配色保持一致 */
+.grow__chg.is-up, .bar-item__val.is-up { color: var(--up); }
+.grow__chg.is-down, .bar-item__val.is-down { color: var(--down); }
+.grow__chg.is-flat, .bar-item__val.is-flat { color: var(--text-weak); }
+
+.grow__val.is-flash { animation: num-flash 0.9s cubic-bezier(0.22, 0.61, 0.36, 1) 1; border-radius: 4px; }
+
+/* ---------- 中列：趋势 + 等级价差 ---------- */
+.panel--trend  { flex: 54 1 0; }
+.panel--spread { flex: 46 1 0; }
+
+/* ---------- 右列：各档对比 + 数据来源 ---------- */
+.panel--sources { flex: 1 1 0; }
+
+.rank-row__val i {
+  margin-left: 2px;
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 400;
+  color: var(--text-weak);
+}
+
+/* ---------- 数据来源滚动行的紧凑三栏（日期 / 名称 / 价格） ---------- */
+.news-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 2px;
+  font-size: 11.5px;
+  border-bottom: 1px dashed #EEF3F9;
+}
+
+.news-row__time {
+  flex: 0 0 40px;
+  color: var(--text-weak);
+  font-variant-numeric: tabular-nums;
+}
+
+.news-row__title {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--text-sub);
+}
+
+.news-row__val {
+  flex: 0 0 72px;
+  text-align: right;
+  font-weight: 700;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ============================================================
+   微信环境提示条（只在微信内置浏览器里显示，可关闭）
+   ============================================================ */
+.wx-tip {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  flex: 0 0 auto;
+  padding: 9px 12px;
+  padding-right: 34px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #7A4B00;
+  background: #FFF7E6;
+  border: 1px solid #FFE0A3;
+  border-radius: var(--radius-sm);
+}
+
+.wx-tip[hidden] { display: none; }
+
+.wx-tip__txt { flex: 1 1 auto; min-width: 0; }
+.wx-tip__txt b { color: #A85B00; }
+
+.wx-tip__close {
+  position: absolute;
+  right: 6px;
+  top: 5px;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  font-size: 18px;
+  line-height: 1;
+  color: #B07A2A;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+}
+
+/* ============================================================
+   窄屏 / 微信内置浏览器适配
+   ------------------------------------------------------------
+   背景：这套大屏本来是「1920×1080 定尺舞台 + 整体等比缩放」的方案。
+   在手机上它会被缩到 0.2 倍左右 —— 30px 的标题只剩 6px，字小到无法阅读。
+   手机不是"小一点的电脑"：光靠缩放救不了，必须换成流式单列布局。
+
+   因此 900px 以下：
+     · 取消定尺缩放（.stage 回归普通文档流，transform 置 none）
+     · 三列改单列、允许纵向滚动
+     · 图表与滚动列表改「确定像素高度」——父级高度为 auto 时，
+       flex:1 与 height:100% 都拿不到参照，会直接塌成 0，是最容易踩的坑
+   选 900px 作阈值：本项目的截图验收基准 1366×768 仍落在桌面模式内，不受影响。
+   ============================================================ */
+@media (max-width: 900px) {
+
+  html, body {
+    height: auto;
+    overflow-x: hidden;               /* 横向永不滚动，纵向放开 */
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch; /* iOS 惯性滚动 */
+  }
+
+  /* ---------- 舞台：彻底退出定尺缩放 ---------- */
+  .stage {
+    position: static;
+    width: 100%;
+    height: auto;
+    display: block;
+    padding: 8px 10px calc(14px + env(safe-area-inset-bottom));
+    overflow: visible;
+    transform: none !important;       /* 压掉 main.js 写入的内联 transform */
+    will-change: auto;
+  }
+
+  .stage > * { margin-bottom: 10px; }
+  .stage > *:last-child { margin-bottom: 0; }
+
+  /* ---------- 顶栏：改竖排 ---------- */
+  .topbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+    padding: 12px 14px;
+  }
+
+  .topbar__title { font-size: 20px; letter-spacing: 1px; }
+  .topbar__sub { margin-top: 5px; font-size: 12px; letter-spacing: .4px; }
+
+  .topbar__right { align-items: flex-start; width: 100%; }
+
+  /* 署名在窄屏允许换行——宁可换行，也不能被挤出屏幕 */
+  .maker {
+    align-self: flex-start;
+    padding: 6px 12px;
+    font-size: 14px;
+    letter-spacing: .5px;
+    white-space: normal;
+  }
+
+  .maker__note { font-size: 11px; letter-spacing: 0; }
+
+  /* ---------- 核心指标条：两列 ---------- */
+  .kpibar {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .kpi { min-height: 62px; padding: 8px 10px 8px 14px; gap: 4px; }
+  .kpi__label { font-size: 12px; }
+  .kpi__value { font-size: 19px; }
+  .kpi__value small { font-size: 11px; }
+  .kpi--time { grid-column: 1 / -1; }
+  .kpi--time .kpi__value { font-size: 16px; }
+  .kpi__value--date { font-size: 17px !important; }
+
+  /* ---------- 三列 → 单列 ---------- */
+  .main, .col { display: block; min-height: 0; }
+  .col--left, .col--mid, .col--right { width: 100%; flex: none; }
+  .col > * { margin-bottom: 10px; }
+  .col > *:last-child { margin-bottom: 0; }
+
+  /* ---------- 面板：高度交给内容 ---------- */
+  .panel {
+    display: block;
+    min-height: 0;
+    padding: 9px 11px 12px;
+    margin-bottom: 10px;
+  }
+
+  .panel--gcards, .panel--updown, .panel--trend,
+  .panel--spread, .panel--rank-price, .panel--sources { flex: none; }
+
+  .panel__head { height: auto; min-height: 20px; flex-wrap: wrap; margin-bottom: 7px; }
+  .panel__body { display: block; overflow: visible; }
+  .panel__body--chart { display: block; }
+
+  /* 图表必须有确定高度，否则窄屏下会塌成 0 高 */
+  .chart { height: 230px; }
+
+  .chart-credit {
+    height: auto;
+    margin-top: 6px;
+    line-height: 1.55;
+    text-align: left;
+  }
+
+  /* ---------- 粮食卡片与等级明细 ---------- */
+  .gcards { display: block; }
+  .gcard { display: block; margin-bottom: 7px; padding: 9px 12px 9px 14px; }
+  .gcard:last-child { margin-bottom: 0; }
+  .gcard--multi { flex: none; }
+
+  .gcard__row { flex-wrap: wrap; row-gap: 4px; }
+  .gcard__name { font-size: 15px; }
+  .gcard__price { font-size: 19px; }
+
+  /* 等级名在窄屏要能换行：例如「三等（深加工收购）」长于右侧数值列时必须折行，不能截断 */
+  .grow__name { white-space: normal; overflow: visible; text-overflow: clip; }
+  .grow__val { flex: 0 0 52px; }
+  .grow__chg { flex: 0 0 64px; font-size: 11.5px; }
+
+  /* ---------- 榜单：不再内部滚动，直接铺开 ---------- */
+  .bar-list, .rank-list {
+    height: auto;
+    justify-content: flex-start;
+    gap: 6px;
+  }
+
+  .bar-item { grid-template-columns: 38px 1fr 60px; gap: 6px; font-size: 12.5px; }
+  .rank-row { padding: 3px 6px 3px 4px; }
+
+  /* 滚动容器要有明确高度：height:100% 在 auto 高父级下会被解析成内容高，轮播位移失去参照 */
+  .news-viewport { height: 240px; }
+  .news-row { font-size: 12px; }
+  .news-row__title { white-space: normal; overflow: visible; text-overflow: clip; }
+
+  /* ---------- 底部来源跑马灯 ---------- */
+  .ticker { display: block; height: auto; padding: 8px 0; }
+  .ticker__label { display: inline-flex; padding: 4px 12px; margin: 0 0 8px 10px; }
+  .ticker__viewport { height: 22px; padding: 0 10px; }
+  .ticker__track { animation-duration: 60s; }   /* 窄屏可视区小，放慢一点才看得清 */
+
+  /* ---------- 页脚 ---------- */
+  .footer {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+    padding: 2px 2px 0;
+    font-size: 11.5px;
+  }
+
+  .footer p { line-height: 1.65; }
+
+  /* ---------- 加载态：改为视口固定居中（main 在窄屏很高，absolute 会飘到屏幕外） ---------- */
+  .loading-pill { position: fixed; top: 50%; }
+}
+
+/* 超窄屏（老的 320px 机型）再把指标条压成一列 */
+@media (max-width: 340px) {
+  .kpibar { grid-template-columns: minmax(0, 1fr); }
+  .kpi--time { grid-column: auto; }
+}
+
